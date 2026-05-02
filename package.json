@@ -1,0 +1,11 @@
+{
+  "name": "tmt-bridge-lens-v10",
+  "version": "10.0.0",
+  "private": true,
+  "description": "Simple, fast English/Nepali/Tamang browser translation extension for Google TMT Hackathon 2026.",
+  "scripts": {
+    "check": "node --check src/background.js && node --check src/content.js && node --check src/popup.js && node --check src/options.js",
+    "package": "bash scripts/package.sh"
+  },
+  "license": "MIT"
+}

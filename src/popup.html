@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TMT Bridge Lens v10</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="mark">TMT</div>
+      <div>
+        <h1>Bridge Lens</h1>
+        <p>English · Nepali · Tamang</p>
+      </div>
+    </header>
+
+    <section id="token-warning" class="notice hidden">
+      <span>Token missing.</span>
+      <button id="open-options-top" type="button">Add token</button>
+    </section>
+
+    <section class="card">
+      <div class="language-row">
+        <label>
+          <span>Source</span>
+          <select id="src-lang">
+            <option value="en">English</option>
+            <option value="ne">Nepali</option>
+            <option value="tmg">Tamang</option>
+          </select>
+        </label>
+
+        <button id="swap" class="swap" type="button" title="Swap source and target">⇄</button>
+
+        <label>
+          <span>Destination</span>
+          <select id="tgt-lang">
+            <option value="tmg">Tamang</option>
+            <option value="ne">Nepali</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="mode-row" role="radiogroup" aria-label="Translation mode">
+        <label><input type="radio" name="mode" value="bilingual" checked /> Bilingual</label>
+        <label><input type="radio" name="mode" value="replace" /> Replace</label>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button id="translate-page" class="primary" type="button">Translate page</button>
+      <button id="translate-selection" type="button">Translate selection</button>
+      <button id="restore" type="button">Restore page</button>
+    </section>
+
+    <section class="card compact">
+      <label for="quick-text">Quick text</label>
+      <textarea id="quick-text" rows="3" placeholder="Type a sentence for a fast API demo."></textarea>
+      <button id="quick-translate" class="secondary" type="button">Translate text</button>
+      <output id="quick-output">Result appears here.</output>
+    </section>
+
+    <footer>
+      <span id="status">Ready</span>
+      <button id="open-options" type="button">Options</button>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
