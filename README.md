@@ -85,9 +85,7 @@ The default profile is **Fast demo**, which uses:
 
 If the API becomes slow or rate-limited, open Options and choose **Gentle API**.
 
-## Known browser limitations
 
-Browser extensions cannot run on some restricted pages, such as the Chrome Web Store, internal `chrome://` pages, and some browser PDF viewers. Test on normal webpages or the included demo page.
 
 ## License
 
