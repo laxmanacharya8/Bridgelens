@@ -6,7 +6,8 @@
  * never exposed to webpage scripts.
  */
 
-const runtime = typeof browser !== 'undefined' ? browser : chrome;
+const usesBrowserPromises = typeof browser !== 'undefined';
+const runtime = usesBrowserPromises ? browser : chrome;
 
 const DEFAULTS = Object.freeze({
   apiUrl: 'https://tmt.ilprl.ku.edu.np/lang-translate',
@@ -33,10 +34,12 @@ let cacheLoaded = false;
 let persistTimer = null;
 
 function storageGet(area, keys) {
+  if (usesBrowserPromises) return runtime.storage[area].get(keys);
   return new Promise(resolve => runtime.storage[area].get(keys, resolve));
 }
 
 function storageSet(area, value) {
+  if (usesBrowserPromises) return runtime.storage[area].set(value);
   return new Promise(resolve => runtime.storage[area].set(value, resolve));
 }
 
@@ -251,21 +254,27 @@ async function translateBlock(payload = {}) {
 }
 
 async function getActiveTab() {
-  const tabs = await new Promise(resolve => runtime.tabs.query({ active: true, currentWindow: true }, resolve));
+  const query = { active: true, currentWindow: true };
+  const tabs = usesBrowserPromises
+    ? await runtime.tabs.query(query)
+    : await new Promise(resolve => runtime.tabs.query(query, resolve));
   const tab = tabs && tabs[0];
   if (!tab || !tab.id) throw new Error('No active tab found.');
   return tab;
 }
 
-function sendTabMessage(tabId, message) {
-  return new Promise((resolve, reject) => {
-    runtime.tabs.sendMessage(tabId, message, response => {
-      const err = runtime.runtime.lastError;
-      if (err) return reject(new Error(err.message));
-      if (response && response.ok === false) return reject(new Error(response.error || 'Page action failed.'));
-      resolve(response || { ok: true });
+async function sendTabMessage(tabId, message) {
+  const response = usesBrowserPromises
+    ? await runtime.tabs.sendMessage(tabId, message)
+    : await new Promise((resolve, reject) => {
+      runtime.tabs.sendMessage(tabId, message, result => {
+        const err = runtime.runtime.lastError;
+        if (err) return reject(new Error(err.message));
+        resolve(result);
+      });
     });
-  });
+  if (response && response.ok === false) throw new Error(response.error || 'Page action failed.');
+  return response || { ok: true };
 }
 
 async function ensureContentScript(tabId) {
@@ -293,7 +302,11 @@ async function clearCache() {
 async function createContextMenu() {
   if (!runtime.contextMenus) return;
   try {
-    await new Promise(resolve => runtime.contextMenus.removeAll(resolve));
+    if (usesBrowserPromises) {
+      await runtime.contextMenus.removeAll();
+    } else {
+      await new Promise(resolve => runtime.contextMenus.removeAll(resolve));
+    }
     runtime.contextMenus.create({
       id: 'tmt-translate-selection',
       title: 'Translate selected text with TMT',
