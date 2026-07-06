@@ -1,4 +1,5 @@
-const runtime = typeof browser !== 'undefined' ? browser : chrome;
+const usesBrowserPromises = typeof browser !== 'undefined';
+const runtime = usesBrowserPromises ? browser : chrome;
 
 const PROFILE = {
   fast: { maxConcurrentRequests: 3, requestDelayMs: 80 },
@@ -26,21 +27,26 @@ const els = {
 };
 
 function storageGet(area, keys) {
+  if (usesBrowserPromises) return runtime.storage[area].get(keys);
   return new Promise(resolve => runtime.storage[area].get(keys, resolve));
 }
 function storageSet(area, value) {
+  if (usesBrowserPromises) return runtime.storage[area].set(value);
   return new Promise(resolve => runtime.storage[area].set(value, resolve));
 }
-function sendMessage(message) {
-  return new Promise((resolve, reject) => {
-    runtime.runtime.sendMessage(message, response => {
-      const err = runtime.runtime.lastError;
-      if (err) return reject(new Error(err.message));
-      if (!response) return reject(new Error('Extension worker did not respond.'));
-      if (response.ok === false) return reject(new Error(response.error || 'Action failed.'));
-      resolve(response);
+async function sendMessage(message) {
+  const response = usesBrowserPromises
+    ? await runtime.runtime.sendMessage(message)
+    : await new Promise((resolve, reject) => {
+      runtime.runtime.sendMessage(message, result => {
+        const err = runtime.runtime.lastError;
+        if (err) return reject(new Error(err.message));
+        resolve(result);
+      });
     });
-  });
+  if (!response) throw new Error('Extension worker did not respond.');
+  if (response.ok === false) throw new Error(response.error || 'Action failed.');
+  return response;
 }
 function setStatus(text) { els.status.textContent = text; }
 

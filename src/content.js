@@ -2,7 +2,8 @@
   if (window.__TMT_BRIDGE_LENS_V10__) return;
   window.__TMT_BRIDGE_LENS_V10__ = true;
 
-  const runtime = typeof browser !== 'undefined' ? browser : chrome;
+  const usesBrowserPromises = typeof browser !== 'undefined';
+  const runtime = usesBrowserPromises ? browser : chrome;
   const SKIP_SELECTOR = [
     'script', 'style', 'noscript', 'template', 'svg', 'canvas', 'video', 'audio',
     'input', 'textarea', 'select', 'option', 'button', 'code', 'pre', 'kbd', 'samp',
@@ -20,16 +21,19 @@
     maxNodes: 650
   };
 
-  function sendMessage(message) {
-    return new Promise((resolve, reject) => {
-      runtime.runtime.sendMessage(message, response => {
-        const err = runtime.runtime.lastError;
-        if (err) return reject(new Error(err.message));
-        if (!response) return reject(new Error('Extension worker did not respond.'));
-        if (response.ok === false) return reject(new Error(response.error || 'Translation failed.'));
-        resolve(response);
+  async function sendMessage(message) {
+    const response = usesBrowserPromises
+      ? await runtime.runtime.sendMessage(message)
+      : await new Promise((resolve, reject) => {
+        runtime.runtime.sendMessage(message, result => {
+          const err = runtime.runtime.lastError;
+          if (err) return reject(new Error(err.message));
+          resolve(result);
+        });
       });
-    });
+    if (!response) throw new Error('Extension worker did not respond.');
+    if (response.ok === false) throw new Error(response.error || 'Translation failed.');
+    return response;
   }
 
   function direction(settings) {
